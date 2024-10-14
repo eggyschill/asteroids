@@ -11,7 +11,14 @@ def main():
     clock = pygame.time.Clock() # Creating clock object for time tracking, and delta time variable
     dt = 0
 
-    player1 = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)# Instantiate player object
+    updateable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+
+    Player.containers = (updateable, drawable)
+
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Instantiate player object
+
+    dt = 0
 
     # Gane loop, infinite
     while True:
@@ -21,9 +28,12 @@ def main():
         
         screen.fill((0, 0, 0))  # Clear the screen to black before drawing
         
-        player1.update(dt)  # Update the player's state (e.g., movement, rotation)
-        player1.draw(screen)  # Draw the player to the screen
-        
+        for obj in updateable:
+            obj.update(dt) # Update all instances of updateable groups
+
+        for obj in drawable:
+            obj.draw(screen) # Draw all drawable groups to the screen
+                    
         pygame.display.flip()  # Update the display with the newly drawn frame
         
         dt = clock.tick(60) / 1000  # Calculate delta time (in seconds) and cap the FPS at 60
