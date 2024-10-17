@@ -1,6 +1,8 @@
 import pygame
 from constants import *
 from player import *
+from asteroid import *
+from asteroidfield import *
 
 
 def main():
@@ -9,25 +11,27 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) # Set screen (display) width and height
     
     clock = pygame.time.Clock() # Creating clock object for time tracking, and delta time variable
-    dt = 0
 
-    updateable = pygame.sprite.Group()
+    updateable = pygame.sprite.Group() # Creating groups to store updateables and drawables
     drawable = pygame.sprite.Group()
+    asteroids = pygame.sprite.Group()
 
-    Player.containers = (updateable, drawable)
-
+    Player.containers = (updateable, drawable) # Creating static field 
+    Asteroid.containers = (asteroids, updateable, drawable) # Creating static field for asteroid
+    AsteroidField.containers = (updateable)
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Instantiate player object
+    asteroidField = AsteroidField()
 
     dt = 0
 
-    # Gane loop, infinite
+    # Game loop, infinite
     while True:
         for event in pygame.event.get():  # Check for quit event
             if event.type == pygame.QUIT:
                 return
         
         screen.fill((0, 0, 0))  # Clear the screen to black before drawing
-        
+
         for obj in updateable:
             obj.update(dt) # Update all instances of updateable groups
 
