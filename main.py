@@ -1,3 +1,4 @@
+import sys
 import pygame
 from constants import *
 from player import *
@@ -15,12 +16,15 @@ def main():
     updateable = pygame.sprite.Group() # Creating groups to store updateables and drawables
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
 
     Player.containers = (updateable, drawable) # Creating static field 
     Asteroid.containers = (asteroids, updateable, drawable) # Creating static field for asteroid
     AsteroidField.containers = (updateable)
+    Shot.containers = (drawable, updateable, shots)
+
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Instantiate player object
-    asteroidField = AsteroidField()
+    asteroidField = AsteroidField() 
 
     dt = 0
 
@@ -34,6 +38,12 @@ def main():
 
         for obj in updateable:
             obj.update(dt) # Update all instances of updateable groups
+
+        for obj in asteroids:
+            if (player.isColliding(obj)):
+                print("Game over!")
+                sys.exit("Game over!")
+            
 
         for obj in drawable:
             obj.draw(screen) # Draw all drawable groups to the screen
