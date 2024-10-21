@@ -22,7 +22,7 @@ def main():
     Asteroid.containers = (asteroids, updateable, drawable) # Creating static field for asteroid
     AsteroidField.containers = (updateable)
     Shot.containers = (drawable, updateable, shots)
-
+    
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Instantiate player object
     asteroidField = AsteroidField() 
 
@@ -43,7 +43,11 @@ def main():
             if (player.isColliding(obj)):
                 print("Game over!")
                 sys.exit("Game over!")
-            
+            for shot in shots:
+                if (shot.isColliding(obj)):
+                    shot.kill()
+                    obj.kill()
+
 
         for obj in drawable:
             obj.draw(screen) # Draw all drawable groups to the screen
