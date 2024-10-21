@@ -1,9 +1,9 @@
 import sys
 import pygame
 from constants import *
-from player import *
-from asteroid import *
-from asteroidfield import *
+from classes.player import *
+from classes.asteroid import *
+from classes.asteroidfield import *
 
 
 def main():
