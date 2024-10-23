@@ -21,12 +21,14 @@ class Player(CircleShape):
 
     def draw(self, screen):
         pygame.draw.polygon(screen,(255,255,255), self.triangle(), 2)
+        pygame.draw.circle(screen, (255,0,0), self.rect.center, self.radius, 1) # red circle for debugging
 
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
 
     def update(self, dt):
         super().update(dt)
+        print(f"Player position: {self.position}, rect: {self.rect}, radius: {self.radius}") # debugging
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.rotate(-dt)

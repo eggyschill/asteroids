@@ -46,7 +46,9 @@ def main():
 
             for asteroid in asteroids_group:
                 # Check for player-asteroid collision
+                print(f"Player rect center : {player.rect.center}, asteroid rect center : {asteroid.rect.center}")
                 if pygame.sprite.collide_circle(player, asteroid):
+                    print("Collision detected with player,asteroid")
                     gameState = GameState.GAME_OVER
                 # Check for shot-asteroid collision
                 for shot in shots_group:
@@ -67,14 +69,13 @@ def main():
             game_over_font = pygame.font.Font(None, 74)
             game_over_text = game_over_font.render("Game Over", True, (255, 0, 0))
             screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 50))
-            
             pygame.display.flip()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return
                 if event.type == pygame.KEYDOWN:
-                    restart_game(updateable_group, drawable_group, asteroids_group, shots_group)
+                    asteroidField, player = restart_game(updateable_group, drawable_group, asteroids_group, shots_group)
                     gameState = GameState.RUNNING
 
 
@@ -88,17 +89,11 @@ def restart_game(updateable_group, drawable_group, asteroids_group, shots_group)
     drawable_group.empty()
     asteroids_group.empty()
     shots_group.empty()
-
     # Re-instantiate the player and asteroid field
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)  # Player will be added to updateable_group and drawable_group
-    updateable_group.add(player)
-    drawable_group.add(player)
-
     asteroidField = AsteroidField(asteroids_group, updateable_group, drawable_group)  # asteroids will be added to their groups automatically
+    return asteroidField, player
     
-
-
-
 
 
 if __name__ == "__main__":
