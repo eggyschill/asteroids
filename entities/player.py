@@ -1,7 +1,7 @@
 import pygame
-from classes.circleshape import CircleShape
-from constants import *
-from classes.shot import *
+from core.circleshape import CircleShape
+from core.constants import *
+from entities.shot import *
 
 class Player(CircleShape):  
     def __init__(self, x, y):
@@ -26,6 +26,7 @@ class Player(CircleShape):
         self.rotation += PLAYER_TURN_SPEED * dt
 
     def update(self, dt):
+        super().update(dt)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.rotate(-dt)

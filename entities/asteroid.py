@@ -1,6 +1,6 @@
 import pygame
-from classes.circleshape import CircleShape
-from constants import *
+from core.circleshape import CircleShape
+from core.constants import *
 import random
 
 class Asteroid(CircleShape):
@@ -12,7 +12,7 @@ class Asteroid(CircleShape):
         pygame.draw.circle(screen, (255,255,255), self.position, self.radius, 2)
 
     def update(self, dt):
-        self.position += (self.velocity * dt)
+        super().update(dt)
     
     def split(self):
         self.kill()

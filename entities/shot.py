@@ -1,6 +1,6 @@
 import pygame
-from classes.circleshape import CircleShape
-from constants import *
+from core.circleshape import CircleShape
+from core.constants import *
 
 
 class Shot(CircleShape):
@@ -12,4 +12,4 @@ class Shot(CircleShape):
         pygame.draw.circle(screen, (255,255,255), self.position, self.shot_radius, 2)
 
     def update(self, dt):
-        self.position += self.velocity * dt
+        super().update(dt)
