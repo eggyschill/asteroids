@@ -1,131 +1,84 @@
 import sys
 import os
 import pygame
-import time
-import socket
-import threading
 
 # Add the project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import pygame
+import sys
+import os
 from core.constants import *
-from core.circleshape import *
-from entities.player import *
-from entities.asteroid import *
-from managers.asteroidfield import *
+from entities.player import Player
+from entities.asteroid import Asteroid
+from entities.shot import Shot
+from managers.asteroidfield import AsteroidField
+from managers.states import GameState
+from managers.menustate import MenuState
+from managers.runningstate import RunningState
+from managers.settingstate import SettingState
 
 
-def main():
-    pygame.init()    # Initialize pygame
-
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF) # Set screen (display) width and height
-    clock = pygame.time.Clock() # Creating clock object for time tracking, and delta time variable
-
-    updateable_group = pygame.sprite.Group() # Creating groups to store updateable_groups and drawable_groups
-    drawable_group = pygame.sprite.Group()
-    asteroids_group = pygame.sprite.Group()
-    shots_group = pygame.sprite.Group()
-
-    Player.containers = (updateable_group, drawable_group) # Creating static field 
-    Asteroid.containers = (asteroids_group, updateable_group, drawable_group) # Creating static field for asteroid
-    AsteroidField.containers = updateable_group
-    Shot.containers = (drawable_group, updateable_group, shots_group)
-    
-    # Instantiate player and asteroid field
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2) # Initial player object
-    player_ref = [player]  # Use a list to store the player as a mutable reference
-    asteroidField = AsteroidField(asteroids_group, updateable_group, drawable_group) 
-    gameState = GameState.RUNNING
-    dt = 0
-
-    # Start the listener thread and pass the mutable player reference
-    listener_thread = threading.Thread(target=listen_for_shoot_commands, args=(player_ref,))
-    listener_thread.daemon = True  # Ensures the thread closes with the main program
-    listener_thread.start()
-
-    # Game loop
-    while True:
-        if gameState == GameState.RUNNING:
-            for event in pygame.event.get():  # Check for quit event
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF) # Set screen (display) width and height
+        self.clock = pygame.time.Clock()
+        
+        # Groups
+        from core.gamesettings import GameSettings
+        self.settings = GameSettings()
+        from managers.highscores import HighScoreManager
+        self.high_scores = HighScoreManager()
+        self.updateable_group = pygame.sprite.Group()
+        self.drawable_group = pygame.sprite.Group()
+        self.asteroids_group = pygame.sprite.Group()
+        self.shots_group = pygame.sprite.Group()
+        
+        # Set up container references
+        Player.containers = (self.updateable_group, self.drawable_group)
+        Asteroid.containers = (self.asteroids_group, self.updateable_group, self.drawable_group)
+        Shot.containers = (self.drawable_group, self.updateable_group, self.shots_group)
+        AsteroidField.containers = (self.updateable_group)
+        
+        # Start with menu state
+        self.state = MenuState(self)
+        
+    def run(self):
+        while True:
+            dt = self.clock.tick(60) / 1000
+            
+            # Handle events
+            events = pygame.event.get()
+            for event in events:
                 if event.type == pygame.QUIT:
                     return
-            
-            screen.fill((0, 0, 0))  # Clear the screen to black before drawing
-
-            for obj in updateable_group:
-                obj.update(dt) # Update all instances of updateable_group groups
-
-            for asteroid in asteroids_group:
-                # Check for player-asteroid collision
-                if pygame.sprite.collide_circle(player_ref[0], asteroid):
-                    print("Collision detected with player, asteroid")
-                    gameState = GameState.GAME_OVER
-                # Check for shot-asteroid collision
-                for shot in shots_group:
-                    if pygame.sprite.collide_circle(shot, asteroid):
-                        shot.kill()  # Destroy the shot
-                        asteroid.split()  # Split the asteroid upon collision
-
-            for obj in drawable_group:
-                obj.draw(screen) # Draw all drawable groups to the screen
-                        
-            pygame.display.flip()  # Update the display with the newly drawn frame
-            
-            dt = clock.tick(60) / 1000  # Calculate delta time (in seconds) and cap the FPS at 60
-
-        elif gameState == GameState.GAME_OVER:
-            # Show "Game Over" message or wait for player to restart
-            screen.fill((0, 0, 0))
-            game_over_font = pygame.font.Font(None, 74)
-            game_over_text = game_over_font.render("Game Over", True, (255, 0, 0))
-            screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 50))
-
+                    
+            # Update current state
+            new_state = self.state.handle_input(events)
+            if new_state and new_state != self.state:
+                self.state = new_state
+                if isinstance(self.state, RunningState):
+                    self.reset_game()
+                    
+            self.state.update(dt)
+            self.state.draw(self.screen)
             pygame.display.flip()
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    return
-                if event.type == pygame.KEYDOWN:
-                    # Restart the game and update the player reference
-                    asteroidField, player_ref[0] = restart_game(updateable_group, drawable_group, asteroids_group, shots_group)
-                    gameState = GameState.RUNNING
-
-
-class GameState():
-    RUNNING = 1
-    GAME_OVER = 2
-
-def restart_game(updateable_group, drawable_group, asteroids_group, shots_group):
-    # Clear all groups
-    updateable_group.empty()
-    drawable_group.empty()
-    asteroids_group.empty()
-    shots_group.empty()
-    # Re-instantiate the player and asteroid field
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)  # Player will be added to updateable_group and drawable_group
-    asteroidField = AsteroidField(asteroids_group, updateable_group, drawable_group)  # asteroids will be added to their groups automatically
-    return asteroidField, player
-
-    
-def listen_for_shoot_commands(player_ref):
-    HOST = "localhost"
-    PORT = 44444
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # open socket tunneling to this server
-        s.bind((HOST, PORT))
-        s.listen()
-        print("Game server listening to commands")
-
-        conn, addr = s.accept()  # Accept Pi5 commands
-        print(f"Connection from {addr} established")
-        with conn:
-            while True:
-                data = conn.recv(1024)
-                if data == b"SHOOT":
-                    player_ref[0].should_shoot = True
-                    print("Received SHOOT command, setting should_shoot to True")  # Debug statement
-                    print(f"Status : {player_ref[0].should_shoot}")  # Verify that should_shoot is set correctly
-
-
+    def check_high_score(self, score):
+        if self.high_scores.check_score(score):
+            self.high_scores.add_score(score)
+            
+    def reset_game(self):
+        # Clear all groups
+        self.updateable_group.empty()
+        self.drawable_group.empty()
+        self.asteroids_group.empty()
+        self.shots_group.empty()
+        
+        # Create new player and asteroid field
+        self.player = Player(self, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)  # Pass self (game instance)
+        self.asteroid_field = AsteroidField(self, self.asteroids_group, self.updateable_group, self.drawable_group)  # Pass self (game instance)
 if __name__ == "__main__":
-    main()
+    game = Game()
+    game.run()

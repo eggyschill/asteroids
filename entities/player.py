@@ -2,14 +2,16 @@ import pygame
 from core.circleshape import CircleShape
 from core.constants import *
 from entities.shot import *
+from core.gamesettings import GameSettings
 
 class Player(CircleShape):  
-    def __init__(self, x, y):
+    def __init__(self, game, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
-        self.should_shoot = False # Flag to check if shots are fired (button integration)
+        # self.should_shoot = False # Flag to check if shots are fired (button integration) [deprecated]
         self.rotation = 0
         self.shot_timer = 0
         self.PLAYER_SHOT_TIMER = 0
+        self.game = game
 
     # triangle, position for drawing
     def triangle(self, position=None):
@@ -56,10 +58,6 @@ class Player(CircleShape):
 
     def update(self, dt):
         super().update(dt)
-        if (self.should_shoot):
-            print("self.shoot is true, shooting")
-            self.shoot()
-            self.should_shoot = False # reset flag 
         if (self.position.x > SCREEN_WIDTH or 
             self.position.x < 0 or 
             self.position.y > SCREEN_HEIGHT or 
@@ -76,12 +74,12 @@ class Player(CircleShape):
         if keys[pygame.K_s]:
             self.move(-dt)
         if keys[pygame.K_SPACE]:
-            print(f"shot flag status : {self.should_shoot}")
+            self.shoot()
         self.PLAYER_SHOT_TIMER -= dt
 
     def move(self, dt):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
-        self.position += forward * PLAYER_SPEED * dt
+        self.position += forward * self.game.settings.player_speed * dt
 
     def shoot(self):
         if (self.PLAYER_SHOT_TIMER <= 0):
