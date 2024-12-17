@@ -27,10 +27,3 @@ class CircleShape(pygame.sprite.Sprite):
 
         # collision detection
 
-    
-    '''
-    def isColliding(self, obj):
-        distanceCenter = pygame.math.Vector2.distance_to(obj.position, self.position)
-        radiusTotal = self.radius + obj.radius
-        return distanceCenter <= radiusTotal
-    '''

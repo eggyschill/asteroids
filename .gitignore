@@ -1,2 +1,25 @@
+# Python environment
 venv/
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Scores and such
+highscores.json    # Since this will contain user-generated data
+*.log             # Any log files your game might generate
+
+# OS 
+.DS_Store         # For Mac users
+Thumbs.db         # For Windows users
+desktop.ini

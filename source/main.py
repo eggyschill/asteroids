@@ -25,7 +25,7 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF) # Set screen (display) width and height
         self.clock = pygame.time.Clock()
         
-        # Groups
+        # Group containers and specific imports
         from core.gamesettings import GameSettings
         self.settings = GameSettings()
         from managers.highscores import HighScoreManager
